@@ -26,7 +26,7 @@ function mergeCors(baseHeaders, cors) {
   return h;
 }
 
-async function forwardGrab(request, upstreamBaseOrigin, pathnameAndSearch, bearer, cors) {
+async function forwardGrab(request, upstreamBaseOrigin, pathnameAndSearch, bearer, cors, env) {
   const target = new URL(pathnameAndSearch || '/', upstreamBaseOrigin);
   if (target.origin !== upstreamBaseOrigin) {
     return new Response('Invalid upstream', { status: 500, headers: cors });
@@ -39,11 +39,28 @@ async function forwardGrab(request, upstreamBaseOrigin, pathnameAndSearch, beare
     'range',
     'accept-language',
     'if-none-match',
-    'if-modified-since'
+    'if-modified-since',
+    // Grab keys restricted by HTTP referrer: Worker→Grab must carry the app origin the key was allowlisted for.
+    'referer',
+    'origin',
+    'user-agent'
   ]) {
     const v = request.headers.get(name);
     if (v) hop.set(name, v);
   }
+
+  const fallbackRef = String(env?.GRAB_UPSTREAM_REFERER || '').trim();
+  if (fallbackRef && !hop.has('referer')) {
+    hop.set('Referer', fallbackRef);
+  }
+  if (fallbackRef && !hop.has('origin')) {
+    try {
+      hop.set('Origin', new URL(fallbackRef).origin);
+    } catch {
+      /* ignore */
+    }
+  }
+
   hop.set('Authorization', `Bearer ${bearer}`);
 
   const body =
@@ -99,13 +116,13 @@ export default {
     if (url.pathname === '/grab-maps' || url.pathname.startsWith('/grab-maps/')) {
       const after = url.pathname.slice('/grab-maps'.length) || '/';
       const pathOnOrigin = after.startsWith('/') ? after : `/${after}`;
-      return forwardGrab(request, 'https://maps.grab.com', pathOnOrigin + url.search, grabKey, cors);
+      return forwardGrab(request, 'https://maps.grab.com', pathOnOrigin + url.search, grabKey, cors, env);
     }
 
     if (url.pathname === '/grab-api' || url.pathname.startsWith('/grab-api/')) {
       const after = url.pathname.slice('/grab-api'.length) || '/';
       const pathOnOrigin = after.startsWith('/') ? after : `/${after}`;
-      return forwardGrab(request, 'https://api.grab.com', pathOnOrigin + url.search, grabKey, cors);
+      return forwardGrab(request, 'https://api.grab.com', pathOnOrigin + url.search, grabKey, cors, env);
     }
 
     if (url.pathname.startsWith('/openweather/')) {
