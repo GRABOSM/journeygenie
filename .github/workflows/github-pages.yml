@@ -1,9 +1,11 @@
-# Build and deploy static site to GitHub Pages (project site: /<repo>/).
+# Build and deploy to GitHub Pages (project URL: https://grabosm.github.io/journeygenie/ ).
+# Required for proxy mode: add repository secret REACT_APP_API_PROXY_URL (Worker origin, no trailing slash).
 name: Deploy GitHub Pages
 
 on:
   push:
     branches: [main, master]
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -21,7 +21,7 @@ npx wrangler secret put GRAB_MAPS_API_KEY
 npx wrangler secret put OPENWEATHER_API_KEY
 ```
 
-4. Copy the worker URL (for example `https://journeygenie-api-proxy.your-subdomain.workers.dev`).
+4. Copy the worker **origin** (for example `https://journeygenie-api-proxy.grabmaps-demo.workers.dev`). Visiting `/` in the browser shows a short JSON index; real traffic uses `/grab-maps/…`, `/grab-api/…`, `/openweather/…`.
 
 ## Wire the React app
 

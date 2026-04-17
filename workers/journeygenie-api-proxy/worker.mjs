@@ -79,6 +79,23 @@ export default {
       });
     }
 
+    if (url.pathname === '/' || url.pathname === '') {
+      const body = JSON.stringify({
+        service: 'journeygenie-api-proxy',
+        note: 'Root has no API; use path prefixes below.',
+        paths: {
+          grabMaps: '/grab-maps/… → https://maps.grab.com/…',
+          grabApi: '/grab-api/… → https://api.grab.com/…',
+          openweather: '/openweather/weather?lat=&lon='
+        },
+        smokeTest: '/grab-maps/api/style.json'
+      });
+      return new Response(body, {
+        status: 200,
+        headers: mergeCors({ 'Content-Type': 'application/json; charset=utf-8' }, cors)
+      });
+    }
+
     if (url.pathname === '/grab-maps' || url.pathname.startsWith('/grab-maps/')) {
       const after = url.pathname.slice('/grab-maps'.length) || '/';
       const pathOnOrigin = after.startsWith('/') ? after : `/${after}`;
