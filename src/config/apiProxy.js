@@ -30,18 +30,21 @@ export const GRAB_API_COM_PROXY_PREFIX = `${API_PROXY_ORIGIN}/grab-api`;
  */
 export function rewriteGrabUrlForProxy(url) {
   if (!USE_API_PROXY || typeof url !== 'string' || !url.startsWith('http')) return url;
-  try {
-    const u = new URL(url);
-    if (u.hostname === 'maps.grab.com') {
-      return `${API_PROXY_ORIGIN}/grab-maps${u.pathname}${u.search}`;
-    }
-    if (u.hostname === 'api.grab.com') {
-      return `${API_PROXY_ORIGIN}/grab-api${u.pathname}${u.search}`;
-    }
-    return url;
-  } catch {
-    return url;
+  // Never use `new URL(url)` here: it percent-encodes `{z}`, `{fontstack}`, `{range}`, etc. and breaks MapLibre templates.
+  const lower = url.toLowerCase();
+  if (lower.startsWith('https://maps.grab.com')) {
+    return `${API_PROXY_ORIGIN}/grab-maps${url.slice('https://maps.grab.com'.length)}`;
   }
+  if (lower.startsWith('http://maps.grab.com')) {
+    return `${API_PROXY_ORIGIN}/grab-maps${url.slice('http://maps.grab.com'.length)}`;
+  }
+  if (lower.startsWith('https://api.grab.com')) {
+    return `${API_PROXY_ORIGIN}/grab-api${url.slice('https://api.grab.com'.length)}`;
+  }
+  if (lower.startsWith('http://api.grab.com')) {
+    return `${API_PROXY_ORIGIN}/grab-api${url.slice('http://api.grab.com'.length)}`;
+  }
+  return url;
 }
 
 /**

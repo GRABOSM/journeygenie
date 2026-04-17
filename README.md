@@ -2,7 +2,7 @@
 
 JourneyGenie is a **showcase application** for [**Grab Maps for developers**](https://maps.grab.com/developer): a portal where builders can use **data-enriched GrabMaps** to create mapping, mobility, and location experiences across **Southeast Asia**. This repo demonstrates how those capabilities fit together in a modern React app.
 
-**Learn the APIs and concepts here:** [Grab Maps developer documentation](https://maps.grab.com/developer/documentation)
+**Learn the APIs and concepts here:** [Grab Maps developer documentation](https://maps.grab.com/developer/documentation).
 
 ---
 

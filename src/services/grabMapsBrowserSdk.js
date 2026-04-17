@@ -55,8 +55,21 @@ function grabMapsPublicOriginFromApiBase(apiBase) {
  * @param {string} publicMapsOrigin e.g. `https://maps.grab.com`
  * @returns {string}
  */
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function rewriteLegacyV1ApiPath(url, publicMapsOrigin) {
   if (!publicMapsOrigin || typeof url !== 'string' || !url.startsWith('http')) return url;
+  const pathBeforeQuery = url.split('?')[0];
+  // `new URL()` encodes `{z}`, `{fontstack}`, `{range}` in paths and breaks MapLibre style templates.
+  if (pathBeforeQuery.includes('{')) {
+    if (!url.startsWith(publicMapsOrigin)) return url;
+    return url.replace(
+      new RegExp(`^${escapeRegExp(publicMapsOrigin)}/v1(/|$)`),
+      `${publicMapsOrigin}/api/v1$1`
+    );
+  }
   try {
     const u = new URL(url);
     if (u.origin !== publicMapsOrigin) return url;
@@ -167,6 +180,10 @@ function normalizeGrabStyleResourceUrls(styleJson, apiBase) {
     } else if (u.startsWith('/')) {
       // Leading "/" is origin-root in the URL API and would drop a path-mounted base (e.g. …/grab-maps).
       out = `${baseTrim}${u}`;
+    } else if (u.includes('{')) {
+      // Same as above: avoid new URL() so `{z}` / `{x}` / `{y}` / `{fontstack}` stay literal for MapLibre.
+      const sep = u.startsWith('/') ? '' : '/';
+      out = `${baseTrim}${sep}${u}`;
     } else {
       try {
         out = new URL(u, root).href;
