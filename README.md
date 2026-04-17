@@ -4,16 +4,6 @@ JourneyGenie is a **showcase application** for [**Grab Maps for developers**](ht
 
 **Learn the APIs and concepts here:** [Grab Maps developer documentation](https://maps.grab.com/developer/documentation)
 
-### Keeping this folder in sync with `../journeygenie`
-
-If you develop in the main app repo and deploy from here, run from this directory:
-
-```bash
-./sync-from-journeygenie.sh
-```
-
-Then commit and push. The script copies `src/`, `public/`, `workers/`, `.github/`, and root manifests from the sibling `journeygenie` folder.
-
 ---
 
 ## Grab Maps platform — API and product highlights (short)
@@ -46,7 +36,11 @@ Edit `.env` — at minimum:
 
 Never commit `.env`; it is gitignored.
 
-`REACT_APP_*` keys in the browser are always visible (Network tab / bundle). For a **public** Pages site, deploy `workers/journeygenie-api-proxy/` and use **`REACT_APP_API_PROXY_URL`** instead of embedding keys (see main repo README and `workers/journeygenie-api-proxy/README.md`).
+### Public sites and API keys
+
+Anything you put in `REACT_APP_*` is compiled into the JavaScript bundle and appears in the browser (for example the Network tab). **You cannot hide Grab or OpenWeather keys in a pure static GitHub Pages app.**
+
+For a public demo, use **Option B** in `.env.example`: deploy the small Cloudflare Worker in `workers/journeygenie-api-proxy/`, store keys as Worker secrets, and set `REACT_APP_API_PROXY_URL` to that worker’s URL in CI. The UI then talks to your worker; the worker adds `Authorization` / `appid` upstream.
 
 ### 2. Install and run
 
@@ -57,37 +51,30 @@ npm start
 
 Production build: `npm run build`.
 
-For a **GitHub Pages** project URL (`https://<user>.github.io/<repo>/`), build with the same base path CRA will use in CI:
-
-```bash
-PUBLIC_URL=/<your-repo-name> npm run build
-```
+For GitHub Pages project URLs, build with `PUBLIC_URL=/<repo-name>` (the included Actions workflow sets this automatically).
 
 ---
 
 ## Deploy on GitHub Pages
 
-This repository is set up for **GitHub Actions** static hosting (no `gh-pages` npm package required).
+Workflow: [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
 
-1. Create a new empty GitHub repository and push this tree as the default branch (`main` or `master`).
-2. In the GitHub repo: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**.
-3. Add **Settings → Secrets and variables → Actions** repository secrets.
+1. **Settings → Pages → Build and deployment:** set **Source** to **GitHub Actions**.
+2. **Settings → Secrets and variables → Actions:** add **`REACT_APP_API_PROXY_URL`** exactly (no trailing slash), e.g. `https://journeygenie-api-proxy.grabmaps-demo.workers.dev`.  
+   Without this secret, the static build does **not** enable the proxy, so you will see OpenWeather “not configured” and Grab **401** in the browser.
+3. Push to `main` (or run **Actions → Deploy GitHub Pages → Run workflow**). The site will be at `https://grabosm.github.io/journeygenie/` (org + repo name).
 
-   **Recommended (keys not in the static bundle):** deploy the Worker in `workers/journeygenie-api-proxy/`, then add:
-   - `REACT_APP_API_PROXY_URL` — your Worker origin, e.g. `https://journeygenie-api-proxy.your-subdomain.workers.dev`  
-   The workflow clears Grab/OpenWeather key env vars when this is set so they are not compiled into JS.
+The Worker root URL (`/`) only returns a small JSON description; API traffic uses `/grab-maps/…`, `/grab-api/…`, and `/openweather/…`. Smoke test: open `/grab-maps/api/style.json` on your worker host.
 
-   **Alternative (keys visible to visitors):** omit `REACT_APP_API_PROXY_URL` and set:
-   - `REACT_APP_GRAB_MAPS_API_KEY` (required for maps)
-   - `REACT_APP_OPENWEATHER_API_KEY` (optional)
-   - `REACT_APP_GRAB_MAPS_API_URL` (optional; defaults to `https://maps.grab.com`)
+---
 
-4. Push to `main` or `master`; the workflow **Deploy GitHub Pages** builds with `PUBLIC_URL` set to `/<repository-name>` and publishes the `build` folder. A duplicate `404.html` is included so direct loads of client routes work on Pages.
+## Optional: map tile cache (browser)
+
+The app can register a small **service worker** (`public/grab-map-tiles-sw.js`) that caches Grab **vector map tile** requests for a short window to reduce repeat downloads. Confirm retention and use with **Grab’s terms** for your product. See `src/registerGrabMapTileCacheSw.js`.
 
 ---
 
 ## Security notes
 
-- Static hosting cannot hide API keys. Use the edge proxy + `REACT_APP_API_PROXY_URL` for public demos.
-- Anyone may still abuse your Worker URL unless you add rate limits or extra auth; monitor quotas.
+- Keep keys in environment variables or your CI/CD secret store, not in source.
 - Rotate keys if they are exposed.

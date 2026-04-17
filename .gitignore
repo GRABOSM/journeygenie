@@ -277,4 +277,3 @@ performance-reports/
 .agents/*
 docs/
 skills-lock.json
-*.sh
