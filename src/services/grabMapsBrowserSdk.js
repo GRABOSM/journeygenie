@@ -29,6 +29,12 @@ function trimSlash(s) {
 
 const DEFAULT_GRAB_HOST = 'https://maps.grab.com';
 
+/** Cloudflare proxy uses `/grab-maps` prefix; Grab expects `/api/v1` not site-root `/v1` for vector tiles. */
+function rewriteGrabProxyPathV1toApiV1(url) {
+  if (!USE_API_PROXY || typeof url !== 'string') return url;
+  return url.replace(/\/grab-maps\/v1(\/|$)/, '/grab-maps/api/v1$1');
+}
+
 /**
  * Origin of the Grab Maps site used for style/tiles (same idea as Grab basic-initialization demo).
  * @param {string} apiBase
@@ -92,7 +98,10 @@ function rewriteLegacyV1UrlsInStyle(style, publicMapsOrigin) {
     if (obj == null) return obj;
     if (typeof obj === 'string') {
       let s = rewriteLegacyV1ApiPath(obj, publicMapsOrigin);
-      if (USE_API_PROXY) s = rewriteGrabUrlForProxy(s);
+      if (USE_API_PROXY) {
+        s = rewriteGrabUrlForProxy(s);
+        s = rewriteGrabProxyPathV1toApiV1(s);
+      }
       return s;
     }
     if (Array.isArray(obj)) {
@@ -192,7 +201,10 @@ function normalizeGrabStyleResourceUrls(styleJson, apiBase) {
       }
     }
     out = rewriteLegacyV1ApiPath(out, publicOrigin);
-    if (USE_API_PROXY) out = rewriteGrabUrlForProxy(out);
+    if (USE_API_PROXY) {
+      out = rewriteGrabUrlForProxy(out);
+      out = rewriteGrabProxyPathV1toApiV1(out);
+    }
     return out;
   };
   const out = { ...styleJson };
@@ -345,6 +357,7 @@ export function grabMapTransformRequest(url, resourceType) {
 
   if (USE_API_PROXY && typeof reqUrl === 'string') {
     reqUrl = rewriteGrabUrlForProxy(reqUrl);
+    reqUrl = rewriteGrabProxyPathV1toApiV1(reqUrl);
   }
 
   if (needsBearer) {

@@ -26,8 +26,30 @@ function mergeCors(baseHeaders, cors) {
   return h;
 }
 
+/**
+ * Grab serves some vector tiles under site-root `/v1/…`; public API expects `/api/v1/…`.
+ * The browser SDK rewrites this for maps.grab.com URLs, but proxied paths stay `/grab-maps/v1/…`
+ * and would otherwise forward `/v1/…` upstream → 403. Align with Grab basic-init / MapBuilder behavior.
+ * @param {string} pathWithQuery pathname + optional "?" search
+ */
+function rewriteGrabMapsUpstreamPath(pathWithQuery) {
+  const s = pathWithQuery || '/';
+  const q = s.indexOf('?');
+  const path = q >= 0 ? s.slice(0, q) : s;
+  const search = q >= 0 ? s.slice(q) : '';
+  if (path === '/v1' || path.startsWith('/v1/')) {
+    const rest = path.replace(/^\/v1(\/|$)/, '/api/v1$1');
+    return `${rest}${search}`;
+  }
+  return s;
+}
+
 async function forwardGrab(request, upstreamBaseOrigin, pathnameAndSearch, bearer, cors, env) {
-  const target = new URL(pathnameAndSearch || '/', upstreamBaseOrigin);
+  let pathAndQuery = pathnameAndSearch || '/';
+  if (upstreamBaseOrigin === 'https://maps.grab.com') {
+    pathAndQuery = rewriteGrabMapsUpstreamPath(pathAndQuery);
+  }
+  const target = new URL(pathAndQuery, upstreamBaseOrigin);
   if (target.origin !== upstreamBaseOrigin) {
     return new Response('Invalid upstream', { status: 500, headers: cors });
   }

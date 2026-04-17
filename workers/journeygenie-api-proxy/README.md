@@ -21,6 +21,8 @@ npx wrangler secret put GRAB_MAPS_API_KEY
 npx wrangler secret put OPENWEATHER_API_KEY
 ```
 
+Vector tile URLs often use legacy **`/v1/…`** paths; Grab’s public host expects **`/api/v1/…`**. The worker (and browser `transformRequest`) rewrite **`/v1/` → `/api/v1/`** on maps traffic so `.pbf` tiles do not get **403**.
+
 If Grab returns **403** on POI/search while maps tiles work, your key is often restricted by **HTTP referrer**. The worker forwards the browser’s `Referer`/`Origin` to Grab. If the browser omits them (strict `Referrer-Policy`), set a fallback:
 
 ```bash
