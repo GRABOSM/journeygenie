@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Typography, Space, Row, Col, Image } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
+import { publicAssetUrl } from '../utils/publicAssetUrl';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -88,7 +89,7 @@ const CookiesModal = () => {
             <Col>
               <div className="brand-icon-container">
                 <Image
-                  src="/icon.png"
+                  src={publicAssetUrl('/icon.png')}
                   alt="JourneyGenie"
                   width={48}
                   height={48}

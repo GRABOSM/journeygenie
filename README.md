@@ -4,6 +4,16 @@ JourneyGenie is a **showcase application** for [**Grab Maps for developers**](ht
 
 **Learn the APIs and concepts here:** [Grab Maps developer documentation](https://maps.grab.com/developer/documentation)
 
+### Keeping this folder in sync with `../journeygenie`
+
+If you develop in the main app repo and deploy from here, run from this directory:
+
+```bash
+./sync-from-journeygenie.sh
+```
+
+Then commit and push. The script copies `src/`, `public/`, `workers/`, `.github/`, and root manifests from the sibling `journeygenie` folder.
+
 ---
 
 ## Grab Maps platform — API and product highlights (short)

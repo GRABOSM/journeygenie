@@ -37,7 +37,7 @@ const grabTheme = {
 function App() {
   return (
     <ConfigProvider theme={grabTheme}>
-      <Router basename={process.env.PUBLIC_URL || ''}>
+      <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/map" element={<MapView />} />

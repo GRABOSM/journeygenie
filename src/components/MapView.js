@@ -67,6 +67,7 @@ import {
   sortLandmarksByPolylineDistance
 } from '../utils/landmarkRouteProximity';
 import { locationToLngLatArray } from '../utils/routeCoordinates';
+import { publicAssetUrl } from '../utils/publicAssetUrl';
 import {
   isWeatherFetchConfigured,
   buildOpenWeatherClientUrl,
@@ -3489,7 +3490,7 @@ Ready for an unforgettable Southeast Asian adventure? 🌏✨`;
               <div className="brand-title-container">
                 <div className="app-brand-icon">
                   <Image
-                    src="/icon.png"
+                    src={publicAssetUrl('/icon.png')}
                     alt="JourneyGenie"
                     preview={false}
                     className="brand-icon-image"
@@ -3605,7 +3606,7 @@ Ready for an unforgettable Southeast Asian adventure? 🌏✨`;
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <div style={{ marginBottom: '12px' }}>
                 <Image
-                  src="/icon.png"
+                  src={publicAssetUrl('/icon.png')}
                   alt="JourneyGenie"
                   preview={false}
                   style={{ 

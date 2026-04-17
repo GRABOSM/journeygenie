@@ -226,7 +226,9 @@ export async function searchGrabNearbyPlaces({
       const hint =
         response.status === 401
           ? ' (check REACT_APP_GRAB_MAPS_API_KEY; internal gateways need REACT_APP_GRAB_NAVIGATION_B2C_TRACING=true + requestID — now applied automatically when hostname matches b2c/engtools)'
-          : '';
+          : response.status === 403
+            ? ' (403: key/referrer restriction or missing POI entitlement — allowlist your GitHub Pages origin for the key; if using the Cloudflare proxy, forward Referer or set Worker secret GRAB_UPSTREAM_REFERER)'
+            : '';
       console.warn('Grab Place nearby HTTP', response.status, response.statusText, hint);
       return [];
     }
@@ -328,7 +330,9 @@ export async function searchGrabPois({
       const hint =
         response.status === 401
           ? ' (check REACT_APP_GRAB_MAPS_API_KEY; internal gateways need REACT_APP_GRAB_NAVIGATION_B2C_TRACING=true + requestID — now applied automatically when hostname matches b2c/engtools)'
-          : '';
+          : response.status === 403
+            ? ' (403: key/referrer restriction or missing POI entitlement — allowlist your GitHub Pages origin for the key; if using the Cloudflare proxy, forward Referer or set Worker secret GRAB_UPSTREAM_REFERER)'
+            : '';
       console.warn('Grab POI search HTTP', response.status, response.statusText, hint);
       return [];
     }

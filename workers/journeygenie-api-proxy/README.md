@@ -21,6 +21,15 @@ npx wrangler secret put GRAB_MAPS_API_KEY
 npx wrangler secret put OPENWEATHER_API_KEY
 ```
 
+If Grab returns **403** on POI/search while maps tiles work, your key is often restricted by **HTTP referrer**. The worker forwards the browser’s `Referer`/`Origin` to Grab. If the browser omits them (strict `Referrer-Policy`), set a fallback:
+
+```bash
+npx wrangler secret put GRAB_UPSTREAM_REFERER
+# paste e.g. https://grabosm.github.io/journeygenie/
+```
+
+Then `npx wrangler deploy` again.
+
 4. Copy the worker **origin** (for example `https://journeygenie-api-proxy.grabmaps-demo.workers.dev`). Visiting `/` in the browser shows a short JSON index; real traffic uses `/grab-maps/…`, `/grab-api/…`, `/openweather/…`.
 
 ## Wire the React app

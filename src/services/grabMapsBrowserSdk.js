@@ -158,11 +158,15 @@ function normalizeGrabStyleResourceUrls(styleJson, apiBase) {
   if (!styleJson || typeof styleJson !== 'object') return styleJson;
   const root = `${trimSlash(apiBase || DEFAULT_GRAB_HOST)}/`;
   const publicOrigin = grabMapsPublicOriginFromApiBase(apiBase);
+    const baseTrim = trimSlash(apiBase || DEFAULT_GRAB_HOST);
     const abs = (u) => {
     if (typeof u !== 'string' || !u) return u;
     let out;
     if (/^https?:\/\//i.test(u) || u.startsWith('//')) {
       out = u;
+    } else if (u.startsWith('/')) {
+      // Leading "/" is origin-root in the URL API and would drop a path-mounted base (e.g. …/grab-maps).
+      out = `${baseTrim}${u}`;
     } else {
       try {
         out = new URL(u, root).href;
@@ -305,17 +309,14 @@ export function grabMapTransformRequest(url, resourceType) {
 
   let reqUrl = typeof url === 'string' ? rewriteLegacyV1ApiPath(url, publicOrigin) : url;
   if (
-    key &&
+    (key || USE_API_PROXY) &&
     typeof reqUrl === 'string' &&
     reqUrl.startsWith('/') &&
     !reqUrl.startsWith('//') &&
     (reqUrl.includes('/api/') || reqUrl.includes('/v1/') || reqUrl.includes('map-tiles'))
   ) {
-    try {
-      reqUrl = new URL(reqUrl, `${apiBase}/`).href;
-    } catch {
-      reqUrl = typeof url === 'string' ? url : reqUrl;
-    }
+    // Do not use new URL('/path', base) here: a leading "/" replaces the whole path and breaks …/grab-maps proxies.
+    reqUrl = `${apiBase}${reqUrl}`;
     reqUrl = rewriteLegacyV1ApiPath(reqUrl, publicOrigin);
   }
 
