@@ -1,0 +1,8 @@
+# Cloudflare Workers — https://developers.cloudflare.com/workers/wrangler/configuration/
+name = "journeygenie-api-proxy"
+main = "worker.mjs"
+compatibility_date = "2024-01-01"
+
+# After first deploy, set secrets (never commit values):
+#   npx wrangler secret put GRAB_MAPS_API_KEY
+#   npx wrangler secret put OPENWEATHER_API_KEY
